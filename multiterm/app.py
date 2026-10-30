@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from collections.abc import Callable
 
@@ -25,14 +26,22 @@ class MultitermApp(Gtk.Application):
         self,
         *,
         testing: bool = False,
+        bench: bool = False,
         on_ready: Callable[[MainWindow], None] | None = None,
     ) -> None:
-        flags = Gio.ApplicationFlags.NON_UNIQUE if testing else Gio.ApplicationFlags.FLAGS_NONE
-        app_id = f"{APP_ID}.Test" if testing else APP_ID
+        separate = testing or bench
+        flags = Gio.ApplicationFlags.NON_UNIQUE if separate else Gio.ApplicationFlags.FLAGS_NONE
+        if testing:
+            app_id = f"{APP_ID}.Test"
+        elif bench:
+            app_id = f"{APP_ID}.Bench"
+        else:
+            app_id = APP_ID
         super().__init__(application_id=app_id, flags=flags)
         self.window: MainWindow | None = None
         self.exit_code = 1 if testing else 0
         self._on_ready = on_ready
+        self._bench = bench
 
     def do_activate(self) -> None:
         if self.window is None:
@@ -47,19 +56,25 @@ class MultitermApp(Gtk.Application):
             if self._on_ready is not None:
                 self._on_ready(self.window)
         self.window.present()
+        if self._bench and not getattr(self, "_bench_started", False):
+            self._bench_started = True
+            print("BENCH ready", flush=True)
+            GLib.idle_add(self.window.continue_bench)
 
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv if argv is None else argv)
     GLib.set_prgname("multiterm")
     GLib.set_application_name("Multiterm")
+    bench = os.environ.get("MULTITERM_BENCH") == "1"
     if "--install-launcher" in argv:
         return _install()
-    try:
-        _install()
-    except OSError as error:
-        print(f"Could not install the launcher: {error}", file=sys.stderr)
-    app = MultitermApp()
+    if not bench:
+        try:
+            _install()
+        except OSError as error:
+            print(f"Could not install the launcher: {error}", file=sys.stderr)
+    app = MultitermApp(bench=bench)
     app.run([argv[0]])
     return app.exit_code
 

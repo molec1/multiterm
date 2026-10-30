@@ -1,0 +1,61 @@
+[package]
+name = "vte-sys"
+links = '"vte-2.91"'
+build = "build.rs"
+authors = ["Koosha Hosseiny <git@koosha.io>"]
+description = "GTK VTE bindings for rust, c bindings crate"
+license = "GPL-3.0"
+readme = "README.md"
+
+[package.version]
+workspace = true
+
+[package.edition]
+workspace = true
+
+[package.homepage]
+workspace = true
+
+[package.repository]
+workspace = true
+
+[package.keywords]
+workspace = true
+
+[package.categories]
+workspace = true
+
+[package.metadata.system-deps.vte_2_91]
+name = "vte-2.91"
+version = "0.80"
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--generate-link-to-definition"]
+all-features = true
+
+[lints]
+workspace = true
+
+[dependencies]
+libc = "0.2"
+atk-sys = "0.19.0"
+cairo-sys-rs = "0.22.9"
+gdk-pixbuf-sys = "0.22.9"
+gdk-sys = "0.19.0"
+gio-sys = "0.22.9"
+glib-sys = "0.22.9"
+gobject-sys = "0.22.9"
+gtk-sys = "0.19.0"
+pango-sys = "0.22.9"
+
+[build-dependencies]
+system-deps = "9"
+
+[dev-dependencies]
+shell-words = "1.0.0"
+tempfile = "3"
+
+[lib]
+name = "vte_sys"
+
+[features]

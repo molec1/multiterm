@@ -11,6 +11,7 @@ from __future__ import annotations
 import contextlib
 import os
 import sys
+import time
 import uuid
 
 import gi
@@ -1031,11 +1032,54 @@ class MainWindow(Gtk.ApplicationWindow):
             self.schedule_save()
         return True
 
+    def continue_bench(self) -> bool:
+        """Open the requested tabs and time the shell and a typed command."""
+        wanted = int(os.environ.get("MULTITERM_BENCH_TABS", "1"))
+        while len(self.tabs()) < wanted:
+            self.new_tab()
+        started = time.monotonic()
+        GLib.timeout_add(50, self._bench_shells, started, wanted)
+        return False
+
+    def _bench_shells(self, started: float, wanted: int) -> bool:
+        tabs = self.tabs()[:wanted]
+        if not all(tab.ready_path.exists() for tab in tabs):
+            if time.monotonic() - started > 20:
+                print('BENCH metrics {"shells_ms":-1,"echo_ms":-1,"tabs":0}', flush=True)
+                return False
+            return True
+        shells_ms = int((time.monotonic() - started) * 1000)
+        for tab in tabs:
+            tab.terminal.feed_child(b"printf 'multiterm-echo-marker\\n'\n")
+        GLib.timeout_add(20, self._bench_echo, shells_ms, time.monotonic(), wanted)
+        return False
+
+    def _bench_echo(self, shells_ms: int, started: float, wanted: int) -> bool:
+        tabs = self.tabs()[:wanted]
+        if not all(_terminal_has_marker(tab) for tab in tabs):
+            if time.monotonic() - started < 10:
+                return True
+            echo_ms = -1
+        else:
+            echo_ms = int((time.monotonic() - started) * 1000)
+        print(
+            f'BENCH metrics {{"shells_ms":{shells_ms},"echo_ms":{echo_ms},"tabs":{len(tabs)}}}',
+            flush=True,
+        )
+        return False
+
     def _flush_save(self) -> bool:
         self._save_id = 0
         if not self.quitting:
             self.save()
         return False
+
+
+def _terminal_has_marker(tab: Tab) -> bool:
+    text = tab.terminal.get_text_format(Vte.Format.TEXT)
+    if isinstance(text, tuple):
+        text = text[0]
+    return text is not None and "multiterm-echo-marker" in str(text)
 
 
 def _parsed_command(command: str) -> list[str] | None:

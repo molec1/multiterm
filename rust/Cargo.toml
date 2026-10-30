@@ -1,0 +1,16 @@
+[package]
+name = "multiterm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gdk = "0.19"
+gio = "0.22"
+glib = "0.22"
+gtk = { version = "0.19", features = ["v3_24"] }
+pango = "0.22"
+serde_json = { version = "1.0", features = ["preserve_order"] }
+vte = { package = "vte-rs", version = "0.5", features = ["gtk_v3"] }
+
+[patch.crates-io]
+vte-sys = { path = "vendor/vte-sys" }

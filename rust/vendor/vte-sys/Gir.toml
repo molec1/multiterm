@@ -1,0 +1,26 @@
+[options]
+library = "Vte"
+version = "2.91"
+deprecate_by_min_version = true
+generate_safety_asserts = true
+min_cfg_version = "1.0"
+single_version_file = true
+target_path = "."
+work_mode = "sys"
+
+girs_directories = [
+  "../vte-291/_build/bindings/gir/",
+  "../gir-files/",
+]
+
+external_libraries = [
+    "Cairo",
+    "GLib",
+    "GObject",
+    "Gdk",
+    "GdkPixbuf",
+    "Gio",
+    "Gtk",
+    "Pango",
+]
+

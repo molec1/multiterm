@@ -4,3 +4,5 @@ __pycache__/
 .venv/
 *.pyc
 .selftest/
+rust/target/
+rust/.link/
