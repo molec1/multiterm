@@ -65,6 +65,9 @@ pub fn open_window(app: &gtk::Application, bench: bool) -> Rc<RefCell<Ui>> {
     let window = gtk::ApplicationWindow::new(app);
     window.set_title("Multiterm");
     window.set_default_size(1000, 640);
+    let icon = crate::paths::install_app_icon();
+    let _ = window.set_icon_from_file(&icon);
+    let _ = gtk::Window::set_default_icon_from_file(&icon);
     let header = gtk::HeaderBar::new();
     header.set_show_close_button(true);
     header.set_title(Some("Multiterm"));

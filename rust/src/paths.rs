@@ -3,6 +3,24 @@
 use std::path::{Path, PathBuf};
 
 pub const APP_ID: &str = "org.local.Multiterm";
+pub const ICON_NAME: &str = "org.local.Multiterm";
+
+const ICON_SVG: &[u8] = include_bytes!("../../data/icons/hicolor/scalable/apps/org.local.Multiterm.svg");
+
+/// Write the app icon and return its path. Benchmarks keep it in the data dir.
+pub fn install_app_icon() -> PathBuf {
+    let dir = if std::env::var_os("MULTITERM_BENCH").is_some() {
+        data_dir()
+    } else if let Some(base) = std::env::var_os("XDG_DATA_HOME") {
+        PathBuf::from(base).join("icons/hicolor/scalable/apps")
+    } else {
+        home().join(".local/share/icons/hicolor/scalable/apps")
+    };
+    let _ = std::fs::create_dir_all(&dir);
+    let path = dir.join(format!("{ICON_NAME}.svg"));
+    let _ = std::fs::write(&path, ICON_SVG);
+    path
+}
 
 pub fn data_dir() -> PathBuf {
     if let Some(override_dir) = std::env::var_os("MULTITERM_DATA") {

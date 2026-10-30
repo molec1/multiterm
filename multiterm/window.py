@@ -22,6 +22,7 @@ gi.require_version("Vte", "2.91")
 
 from gi.repository import Gdk, Gio, GLib, Gtk, Pango, Vte
 
+from multiterm.launcher import ICON_NAME, icon_source
 from multiterm.paths import data_dir, display_path, existing_directory, folder_uri, pid_cwd
 from multiterm.preferences import PreferencesDialog
 from multiterm.session import (
@@ -152,7 +153,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self._drag_targets = [
             Gtk.TargetEntry.new(_DRAG_TARGET, Gtk.TargetFlags.SAME_APP, 0),
         ]
-        self.set_icon_name("utilities-terminal")
+        self._apply_icon()
         self.set_default_size(1000, 640)
         self.header = self._build_header()
         self.set_titlebar(self.header)
@@ -175,6 +176,14 @@ class MainWindow(Gtk.ApplicationWindow):
     def show_all(self) -> None:
         super().show_all()
         self._sync_group_tabs()
+
+    def _apply_icon(self) -> None:
+        path = icon_source()
+        if path.is_file() and self.set_icon_from_file(str(path)):
+            with contextlib.suppress(GLib.Error):
+                Gtk.Window.set_default_icon_from_file(str(path))
+            return
+        self.set_icon_name(ICON_NAME)
 
     def tabs(self) -> list[Tab]:
         found: list[Tab] = []

@@ -15,3 +15,4 @@ def test_entry_uses_the_project_launcher():
     assert "Name=Multiterm" in text
     assert "bin/multiterm" in text
     assert "Terminal=false" in text
+    assert "Icon=org.local.Multiterm" in text

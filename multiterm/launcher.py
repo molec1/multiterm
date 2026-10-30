@@ -13,9 +13,36 @@ def desktop_quote(value: str) -> str:
     return f'"{escaped}"'
 
 
+ICON_NAME = "org.local.Multiterm"
+
+
 def entry_point() -> Path:
     """Executable script at the project root, next to this package."""
     return Path(__file__).resolve().parent.parent / "bin" / "multiterm"
+
+
+def icon_source() -> Path:
+    """Scalable app icon shipped with the project."""
+    return (
+        Path(__file__).resolve().parent.parent
+        / "data"
+        / "icons"
+        / "hicolor"
+        / "scalable"
+        / "apps"
+        / f"{ICON_NAME}.svg"
+    )
+
+
+def install_icon() -> Path:
+    """Copy the icon where the desktop and the icon theme can find it."""
+    destination_dir = Path.home() / ".local" / "share" / "icons" / "hicolor" / "scalable" / "apps"
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    destination = destination_dir / f"{ICON_NAME}.svg"
+    destination.write_bytes(icon_source().read_bytes())
+    with contextlib.suppress(OSError):
+        os.chmod(destination, 0o644)
+    return destination
 
 
 def desktop_entry_text(script: Path | None = None) -> str:
@@ -28,7 +55,8 @@ Name=Multiterm
 GenericName=Terminal
 Comment=Terminal tabs that remember their folder and command history
 Exec={desktop_quote(python)} {desktop_quote(str(target))}
-Icon=utilities-terminal
+Icon=org.local.Multiterm
+StartupWMClass=org.local.Multiterm
 Terminal=false
 Categories=System;TerminalEmulator;GTK;
 StartupNotify=true
@@ -40,6 +68,7 @@ def install_launcher() -> Path:
     """Write ``~/.local/share/applications/multiterm.desktop`` and return that path."""
     applications = Path.home() / ".local" / "share" / "applications"
     applications.mkdir(parents=True, exist_ok=True)
+    install_icon()
     target = applications / "multiterm.desktop"
     target.write_text(desktop_entry_text(), encoding="utf-8")
     with contextlib.suppress(OSError):
